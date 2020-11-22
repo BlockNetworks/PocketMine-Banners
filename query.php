@@ -2,16 +2,18 @@
 
 // Query code for PocketMine Banners
 
-define('SERVEROK',    0);
+define('SERVEROK',       0);
 define('SERVER_DOWN',    1);
 define('SERVERINVALID',  2);
 define('UNKNOWN_ERROR',  3);
 define('TIMEOUT',        1);
 
 function UT3QueryServer($host,$port,&$return)
-{  
+{
+
     $sock = @fsockopen( "udp://" . $host, $port );
-    if ( !$sock ) return SERVERINVALID;
+    if ( !$sock )
+        return SERVERINVALID;
     socket_set_timeout( $sock, 0, 500000 );
     if ( !@fwrite( $sock, "\xFE\xFD\x09\x10\x20\x30\x40\xFF\xFF\xFF\x01" ) )
         return SERVER_DOWN;
@@ -28,7 +30,7 @@ function UT3QueryServer($host,$port,&$return)
         );
     if ( !@fwrite( $sock, $query ) )
         return UNKNOWN_ERROR;
-    $response = array();
+    $response = [];
     for ($x = 0; $x < 2; $x++)
     {
         $response[] = @fread($sock,2048);
@@ -40,33 +42,35 @@ function UT3QueryServer($host,$port,&$return)
     array_pop($response);
     array_pop($response);
     array_pop($response);
-    $return = array();
+    $return = [];
     $type = 0;
     foreach ($response as $key)
     {
-        if ($type == 0) $val = $key;
-        if ($type == 1) $return[$val] = $key;
+        if ($type == 0)
+            $val = $key;
+        if ($type == 1)
+            $return[$val] = $key;
 
         $type == 0 ? $type = 1 : $type = 0;
     }
     return SERVEROK;  
 }
-    $host = $_GET['host'];
-	$port = $_GET['port'];
-	if (empty($_GET['port'])) {
-    	$port = 19132;
-	}
-    $values = '';
-    $returnvalue = UT3QueryServer($host,$port,$values);
-    if($returnvalue != SERVEROK){
-        $ostatus = 2;
-    }else{
-        $currentplayers = $values['numplayers'];
-        $maxplayers    = $values['maxplayers'];
-        $hostname      = $values['hostname'];
-        $percent = (((int)$currentplayers / (int)$maxplayers)*100);
+$host = $_GET['host'];
+$port = $_GET['port'];
+if (empty($_GET['port'])) {
+    $port = 19132;
+}
+$values = '';
+$returnvalue = UT3QueryServer($host,$port,$values);
+if ($returnvalue != SERVEROK) {
+    $ostatus = 2;
+} else {
+    $currentplayers = $values['numplayers'];
+    $maxplayers    = $values['maxplayers'];
+    $hostname      = $values['hostname'];
+    $percent = (((int) $currentplayers / (int) $maxplayers) * 100);
 
-        // echo $percent;
-        $ostatus = 1;
-        // echo 'Players: '.$currentplayers.'/'.$maxplayers.'<br><br>';
-    }
+    // echo $percent;
+    $ostatus = 1;
+    // echo 'Players: ' . $currentplayers . '/' . $maxplayers . '<br><br>';
+}
